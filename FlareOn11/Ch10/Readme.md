@@ -38,4 +38,6 @@ Loading driver at 0x0003F170000 EntryPoint=0x0003F177B14 FullShell.efi
 3. In `Process Options` specify server to `localhost` and port to `1234` this is where QEMU is listening for debuggger connection
 4. Now run. It will say a process is running do you want to attach to it? -- Select `yes`
 9. From `Edit` menu in IDA goto `program` and then `Rebase` the program's imagebase at location from `debug.log` file which in this case is *`0x0003F170000`*
-10. Set breakpoints and start debugging
+10. Set breakpoints and start debuggin
+
+## Check the script folder for the solutions
