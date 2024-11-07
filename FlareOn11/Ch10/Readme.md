@@ -40,4 +40,9 @@ Loading driver at 0x0003F170000 EntryPoint=0x0003F177B14 FullShell.efi
 9. From `Edit` menu in IDA goto `program` and then `Rebase` the program's imagebase at location from `debug.log` file which in this case is *`0x0003F170000`*
 10. Set breakpoints and start debuggin
 
-## Check the script folder for the solutions
+## Check the Scripts folder for the solutions
+1. A disassembler
+2. Compile assembly to produce 32bit ELF
+3. Open in IDA and Decompile
+4. Convert to python
+5. Brute force and z3
