@@ -1,6 +1,6 @@
 # Solution
 
-Exception plays not much hinderance and we don't pay too mcuch attention to it in this solution. We will have to use it a little bit while automating.
+Exception plays not much hinderance and thus we don't pay too much attention to it in this solution. We will have to use it a little bit while automating.
 
 ## Removing the obfuscation while mainitaining executability
 The obfuscation is as follow:
