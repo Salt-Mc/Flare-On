@@ -4,11 +4,11 @@ Exception plays not much hinderance and thus we don't pay too much attention to 
 
 ## Removing the obfuscation while mainitaining executability
 The obfuscation is as follow:
-Component 1 obfuscation:
+### Non-modified part of obfuscation
 1. Whenever it enters a call statement the prologue is a pop instruction that pops (writes) the return address to the epilogue of the function.
-2. In the epilogue it adds the return address with an integer value abd puts this at the current esp effectively make this calculated result the return address of the funtion.
+2. In the epilogue it adds the return address with an integer value and puts this at the current esp effectively make this calculated result the return address of the funtion.
 We will not touch this pattern while deofucating.
-Component 2 obfuscation:
+### Modifiable part of obfuscation:
 1. After the pop instructions at the prologue the code modifies the bytes that are executed next with actual opcode bytes.
 2. It executes those real code bytes
 3. Post this actual code bytes are executed it is followed with instruction which destroys the real code bytes again by writing garbage to it.
@@ -85,13 +85,50 @@ From here it will be easy to understand what's going going on.
 ### Any other round except round 1
 ![image](https://github.com/user-attachments/assets/9eaf5ce7-6aa8-407a-9c49-50ce1b38cc6b)
 
-We implement this understand in python in this script: `Excel_to_python.py`
-Specifically the `perform_action` function.
+We implement this understanding in python in this script: `Excel_to_python.py`
+Specifically the `perform_action` function. Some line from this `perform_action` function looks like
+```py
+def perform_action(kbmarray, operation):
+    ...
+    original_operation = operation
+    for idx in range(len(kbmarray) if operation != 'final' else 8):
+       ...
+            key = SHIFT_OFFSET_TABLE[OFFSET_INDEX + idx]
+            byte_at_offset =  table_t[key][ofst_byt]
+            # Get the byte from file at give VA offset
+            new_KB_mul_C_value = int.from_bytes(kbmarray, "little")
+            ...
+            shifted_value = byte_at_offset << (8 * (idx + 1))
+            new_KB_mul_C_value = operation(new_KB_mul_C_value, shifted_value) % (1 << 64)
+            ...
+            kbmarray = bytearray(new_KB_mul_C_value.to_bytes(byte_length(new_KB_mul_C_value), "little"))
+        new_kbm_len = len(kbmarray)
+        ...
+        # Picks the offset from the REPLACE_OFFSET_TABLE and replace the byte at idx index with the value at the offset
+        key = REPLACE_OFFSET_TABLE[OFFSET_INDEX + idx]
+        A = table_t[key][ofst_byt]
+        kbmarray[idx] = A
 
-Now You will notice the add or xub is done using 01 or 00 bytes picked up from the lookup table and replace is happening with byte between 0x0 - 0xFF
-As the operation is mathematical we will try to take difference between the input we pass to `perform_action` function and the output we get. I have added log lines to print the result.
+    return int.from_bytes(kbmarray, "little")
+```
 
-When tried this multiple time we identified there is a pattern and the pattern is very much depended on step 3 and step 6 from the Analysis step.
+Here notice that there are two parts SHIFT ADD OR SHIFT SUB and another part is REPLACE. The value by which SHIFT and arithmetic happens and the value by which it is replaced is depended on 
+1. Index (idx)
+2. Byte itself
+
+But IDX is kind of constanst meaning it do not depend on what the value of input is, whereas replacing byte does seem to depend on the value of the input.
+
+So, for now just focusing on REPLACING byte behaviour we can say that is is $` A = F(A) `$ where **F** is permutation function for given input. So $` A - F(A) = C \mod{256}`$ where **C** is constant.
+
+Similar relation exists for shift and ADD or SUB.
+
+This meams if we subtract the $`output`$ result from $`input`$ of `perform_action` function it should turn out to be a constant only governed by an operator ADD, SUB or XOR.
+
+Where there is no SHIFT ADD or SUB it's a XOR operation purely governed by the permutation function implemented by the lookup table.
+
+This means we just need to extract for what the value after first transformation that happens immediately after MUL operation and then the value used in 2nd round after shift and replace operation. This is all collected by the `Step2_serpentine_tracer.py` script.
+
+The caulation of the differece is done by the final script that produces z3 script later.
 
 So now we have identified fixed pattern that goes on we can move to write an IDA python scipt that calculated all this automatically.
 The script is `Step2_serpentine_tracer.py`
