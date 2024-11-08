@@ -85,7 +85,7 @@ From here it will be easy to understand what's going going on.
 ### Any other round except round 1
 ![image](https://github.com/user-attachments/assets/9eaf5ce7-6aa8-407a-9c49-50ce1b38cc6b)
 
-We implement this understand in python in this script: Excel_to_python.py
+We implement this understand in python in this script: `Excel_to_python.py`
 Specifically the `perform_action` function.
 
 Now You will notice the add or xub is done using 01 or 00 bytes picked up from the lookup table and replace is happening with byte between 0x0 - 0xFF
