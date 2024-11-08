@@ -13,9 +13,8 @@ We will not touch this pattern while deofucating.
 2. It executes those real code bytes
 3. Post this actual code bytes are executed it is followed with instruction which destroys the real code bytes again by writing garbage to it.
 4. What we will do is when the real code bytes are executed and about to be destroyed again we will overwrite the destroying code bytes with NOP.
-5. Since we also don't need the instruction which prepared these real code bytes that were executed before the real code bytes we will NOP them too
+5. Since we also don't need the instruction which prepared these real code bytes that were executed before the real code bytes itself we will NOP them too
 This will give us an executable in which we have the actual code or important code that we need for analysis.
-We have this script that does this
 
 ## Understanding the drama
 1. When in unknow teritory and not sure where to start our attention should always be caught by the code that is using the user supplied input (i.e. input passed as command line parameter).
@@ -28,30 +27,29 @@ So, What we do?
 
 ## Tracing
 
-We throw it in x64dbg. and from preference change the x64dbg to let the PRIV instruction (which hlt is) exeception being handled by the application itself why should we be bothering x64dbg about it.
+We throw it in x64dbg. and from preference change the x64dbg to let the PRIV instruction (which hlt is) exeception being handled by the application itself. Don't bother x64dbg about it.
 But, also make a selection in that exception setting window to let it log it. We want to see at what addresses the exception occured.
 There is a very nice way to do it in WinDbg using following command but x64dbg is fine ioo.
 
-Copy this list of excpetion address into sumblime or whereever you can use regex based find replace and make it into a list like this `[exr_addr1, exr_addr2,..,exr_addrn]
+Copy this list of excpetion address into sublime or where ever you can use regex based find replace and make it into a list like this `[exr_addr1, exr_addr2,..,exr_addrn]
 
-Okay now there is a code in the executavle that sets up execption handler for the execption that it cause (what a useless thing to do) so that when an execption for those particular addresses (the ones in the list above) happen catch them and handle them.
+Okay now there is a code in the executavle that sets up execption handler for the execption that it cause, so that when an execption for those particular addresses (the ones in the list above) happen catch them and handle them.
 Make a copy of this logic in IDA python and get those exception handler addresses. All we want is the address that is going to be called next when hlt at a particular address is executed. Make IDA python print it in a way like `bp next_address`
-Also let's princt `` same number of times there are items in the list containing exception address
+Also let's print `ticnd 0 == 0 50000` same number of times there are items in the list containing exception address
 
 Now paste the output of the python script in the `script` tab of x64dbg.
 
-Now pot a breakpoint in the main() function where the control is transferred into the virtual Memory section. Go to script tab again and go to the last bp <addr> an right click select run until here. 
+Now put a breakpoint in the main() function where the control is transferred into the virtual Memory section. Go to script tab again and go to the last `bp <addr>` and right-click and select run until here. 
 With the above step done you will have breakpoint set on all the exception handlers. 
 
-Now from the debugger menu setup a trace session, fill out the form for log text and the file name etc to start the tracing. It will start to trace from the beginnng of the Virtual memory until the 1st breakpoint hit.
-Now go back to the script tab and point the cursors at the line `` and press spacebar. It will start tracing and might throw some error just ignore the errors and press spacebar again (after dismissing the errors).
+Now from the debugger menu setup a trace session, fill out the form for `log text` and the file name etc to start the tracing. It will start to trace from the beginnng of the Virtual memory until the 1st breakpoint at exception handler is hit.
+Now go back to the script tab and point the cursors at the line `ticnd 0 == 0 50000` and press spacebar. It will start tracing and might throw some error just ignore these errors and press spacebar again (after dismissing the errors).
 
-In breakpoint tab we will see it moving from top to bottom. Goal is to stop tracing after the last breakpoint at execption handler is exeuted 
+In breakpoint tab we will see the `pc` moving from top to bottom. Goal is to stop tracing after the last breakpoint at execption handler is exeuted 
 
 Do set the breakpoint on function which prints "wrong key" so that you know the point to stop tracing.
 
 From the trace window. right click and choose export to CSV.
-
 
 ## Excel & Analysis
 
