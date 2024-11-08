@@ -53,24 +53,23 @@ Do set the breakpoint on function which prints "wrong key" so that you know the 
 From the trace window. right click and choose export to CSV.
 
 
-## Excel analysi
+## Excel & Analysis
 
 Now save the csv as excel and convert it into table.
 Filter out all instructions starting with
-pop
-ret
-push
-xchg
-hlt
-nop
-anything that that [+28]
-anything that only has virtual memory locations for both the operand or if single operand just has the virtual memory location. Don't filter instruction with stack loations
+- pop
+- ret
+- push
+- xchg
+- hlt
+- nop
+- anything that that [+28]
+- anything that only has virtual memory locations for both the operand or if single operand just has the virtual memory location. Don't filter instruction with stack loations
 
 Now the excel will have something like this.
-
 From here it will be easy to understand what's going going on.
 
-## Analysis
+### Analysis
 
 1. 8 MUL instruction this corresponds 8 rounds
 2. Each Mul is used with a key byte. This will give you the constant and the postion of the key byte in the commadline string we passed
@@ -78,12 +77,20 @@ From here it will be easy to understand what's going going on.
 4. Just after this transformation you will see the tranformed value being changed byte by byte.
 5. The above change is based on the value of the calculated result in step 3.
 6. The change is REPLACE and ADD / SUB  and repeat this for all bytes REPLACE -> ADD / SUB -> REPLACE -> ADD / SUB as seen in screenshot below:
-7. From step 7 we get the operation that is being applied to transformed value in step 3. We will call this result the tranformed value 2 or previous product
+7. From step 7 we get the operator that is being applied to transformed value in step 3. We will call this result the tranformed value 2 or previous product
 8. This previous product is then used in next round.
+### Round 1 (starting of a stage)
+![image](https://github.com/user-attachments/assets/915734c1-e773-4603-8fb1-9b8271bbb3ac)
+
+### Any other round except round 1
+![image](https://github.com/user-attachments/assets/9eaf5ce7-6aa8-407a-9c49-50ce1b38cc6b)
 
 We implemet this understand in python in this script:
 
-Now You will notice the add or xub is done using 1
+Now You will notice the add or xub is done using 01 or 00 bytes picked up from the lookup table
+
+
+
 
 
 
