@@ -37,7 +37,7 @@ Matched 0a6c559073da49754e9ad9846a72954745e4f2921213eccda4b1422e2fdd646fc7e28389
 
 Now we have private key you can put it use it to compute the shared secret. ss = K.Q'
 
-Now use the shared secret and hash it decrypt the comms and get the flag
+Now use the shared secret and hash it to get the chacha20 key. Then use the key to decrypt the comms and get the flag
 
 ## Final script
 Run `final_decrypt_comms.py` to get the flag
