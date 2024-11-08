@@ -33,7 +33,7 @@ There is a very nice way to do it in WinDbg using following command but x64dbg i
 
 Copy this list of excpetion address into sublime or where ever you can use regex based find replace and make it into a list like this `[exr_addr1, exr_addr2,..,exr_addrn]
 
-Okay now there is a code in the executavle that sets up execption handler for the execption that it cause, so that when an execption for those particular addresses (the ones in the list above) happen catch them and handle them.
+Okay now there is a code in the executable that sets up execption handler for the execption that it causes, look at `Handle_Exception` function in 'Step1_Deobfuscate.py` or `Step2_serpentine_tracer.py` both are same.  So, that when an execption for those particular addresses (the ones in the list above) happen catch them and handle them.
 Make a copy of this logic in IDA python and get those exception handler addresses. All we want is the address that is going to be called next when hlt at a particular address is executed. Make IDA python print it in a way like `bp next_address`
 Also let's print `ticnd 0 == 0 50000` same number of times there are items in the list containing exception address
 
