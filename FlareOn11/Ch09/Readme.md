@@ -16,6 +16,9 @@ We will not touch this pattern while deofucating.
 5. Since we also don't need the instruction which prepared these real code bytes that were executed before the real code bytes itself we will NOP them too
 This will give us an executable in which we have the actual code or important code that we need for analysis.
 
+Run `Step1_Deobfuscate.py` that does this.
+[Note to run this script you must change the exception setting for PRIV instruction (0xC00..96) in debugger option to not suspend and pass it to the application]
+
 ## Understanding the drama
 1. When in unknow teritory and not sure where to start our attention should always be caught by the code that is using the user supplied input (i.e. input passed as command line parameter).
 2. The fist time where a byte from user imput is used anywhere in a calculation is with `MUL` keyword.
@@ -27,7 +30,7 @@ So, What we do?
 
 ## Tracing
 
-We throw it in x64dbg. and from preference change the x64dbg to let the PRIV instruction (which hlt is) exeception being handled by the application itself. Don't bother x64dbg about it.
+We throw it in x64dbg. and from preference change the x64dbg to ignore and let the PRIV instruction (which hlt is) exeception being handled by the application itself. Don't bother x64dbg about it.
 But, also make a selection in that exception setting window to let it log it. We want to see at what addresses the exception occured.
 There is a very nice way to do it in WinDbg using following command but x64dbg is fine ioo.
 
@@ -129,7 +132,7 @@ This means we just need to extract for what the value after first transformation
 The caulation of the differece is done by the final script that produces z3 script later.
 
 So now we have identified fixed pattern that goes on we can move to write an IDA python scipt that calculated all this automatically.
-The script is `Step2_serpentine_tracer.py`
+The script is `Step2_serpentine_tracer.py`. Note to run this script you **must change the exception setting in debugger option to not suspend and pass it to the application**
 The output of the script will be like
 ```
 {
