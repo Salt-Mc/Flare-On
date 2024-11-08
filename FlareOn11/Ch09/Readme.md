@@ -18,7 +18,7 @@ This will give us an executable in which we have the actual code or important co
 We have this script that does this
 
 ## Understanding the drama
-1. When in unknow teritory and not sure where to start our attention should always be caught by the code that is using the user supplied input (commadline parameter).
+1. When in unknow teritory and not sure where to start our attention should always be caught by the code that is using the user supplied input (i.e. input passed as command line parameter).
 2. The fist time where a byte from user imput is used anywhere in a calculation is with `MUL` keyword.
 3. Something goes on in between, actually too many things goes on in between but next point of interest is the code site from  where it comes to tell us about whether the key is wrong or right.
 4. So, we have a start and end and all we need to do is analyze this code
