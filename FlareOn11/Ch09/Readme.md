@@ -77,7 +77,7 @@ From here it will be easy to understand what's going going on.
 4. Just after this transformation you will see the tranformed value being changed byte by byte.
 5. The above change is based on the value of the calculated result in step 3.
 6. The change is REPLACE and ADD / SUB  and repeat this for all bytes REPLACE -> ADD / SUB -> REPLACE -> ADD / SUB as seen in screenshot below:
-7. From step 7 we get the operator that is being applied to transformed value in step 3. We will call this result the tranformed value 2 or previous product
+7. From step 6 we get the operator that is being applied to transformed value in step 3. We will call this result the tranformed value 2 or previous product
 8. This previous product is then used in next round.
 ### Round 1 (starting of a stage)
 ![image](https://github.com/user-attachments/assets/915734c1-e773-4603-8fb1-9b8271bbb3ac)
@@ -85,15 +85,71 @@ From here it will be easy to understand what's going going on.
 ### Any other round except round 1
 ![image](https://github.com/user-attachments/assets/9eaf5ce7-6aa8-407a-9c49-50ce1b38cc6b)
 
-We implemet this understand in python in this script:
+We implemet this understand in python in this script: Excel_to_python.py
+Specifically the `perform_action` function.
 
-Now You will notice the add or xub is done using 01 or 00 bytes picked up from the lookup table
+Now You will notice the add or xub is done using 01 or 00 bytes picked up from the lookup table and replace is happening with byte between 0x0 - 0xFF
+As the operation is mathematical we will try to take difference between the input we pass to `perform_action` function and the output we get. I have added log lines to print the result.
 
+When tried this multiple time we identified there is a pattern and the pattern is very much depended on step 3 and step 6 from the Analysis step.
 
+So now we have identified fixed pattern that goes on we can move to write an IDA python scipt that calculated all this automatically.
+The script is `Step2_serpentine_tracer.py`
+The output of the script will be like
+```
+{
+    1: {
+        "pc": 111465945,
+        "key_byte": 78,
+        "constant": 6556585,
+        "curr_prod": 511413630,
+        "prev_prod": None,
+        "curr_prod_t": None,
+        "curr_prod_t_op": None,
+        "transform_op": add,
+        "final_prod": 0,
+    },
+    2: {
+        "pc": 111475258,
+        "key_byte": 122,
+        "constant": 15849957,
+        "curr_prod": 1933694754,
+        "prev_prod": 1877477338,
+        "curr_prod_t": 18446744073653334200,
+        "curr_prod_t_op": "-",
+        "transform_op": add,
+        "final_prod": 0,
+    },
+    3: {
+        "pc": 111485502,
+        "key_byte": 49,
+        "constant": 13886200,
+        "curr_prod": 680423800,
+        "prev_prod": 2280160803,
+        "curr_prod_t": 2960584603,
+        "curr_prod_t_op": "+",
+        "transform_op": add,
+        "final_prod": 0,
+    },
+...
+  8: {
+          "pc": 111530460,
+          "key_byte": 120,
+          "constant": 9319758,
+          "curr_prod": 1118370960,
+          "prev_prod": 3122164287,
+          "curr_prod_t": 4240535247,
+          "curr_prod_t_op": "+",
+          "transform_op": sub,
+          "final_prod": 18446744070103412039,
+      }
+```
 
+It takes 2-3 hours to generate the entire list like in the above example 
 
+## Generating Z3 Script from the output of IDA python script
+`Step2_serpentine_tracer.py` Take the result and converts it into the Z3 script.
 
+## The final solution
+The `Step4_solution.py` is generaned by the previous script and when we run this we get our soltuion
 
-
-
-The program has a very consistent patte
