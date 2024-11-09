@@ -46,3 +46,7 @@ Loading driver at 0x0003F170000 EntryPoint=0x0003F177B14 FullShell.efi
 3. Open in IDA and Decompile
 4. Convert to python
 5. Brute force and z3
+
+## Example of how a decompiled output from IDA looks like
+![image](https://github.com/user-attachments/assets/285dc9a9-9b9c-4cf5-b4f6-6b0748b6b647)
+
