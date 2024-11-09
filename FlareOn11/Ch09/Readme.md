@@ -186,7 +186,7 @@ The output of the script will be like
 It takes 2-3 hours to generate the entire list like in the above example 
 
 ## Generating Z3 Script from the output of IDA python script
-`Step2_serpentine_tracer.py` Take the result and converts it into the Z3 script.
+`Step3_Generate_z3_script.py` Take the result and converts it into the Z3 script.
 
 ## The final solution
 The `Step4_solution.py` is generaned by the previous script and when we run this we get our soltuion
