@@ -1,10 +1,8 @@
 # Solution
 
-Exception plays not much hinderance and thus we don't pay too much attention to it in this solution. We will have to use it a little bit while automating.
-
-## Removing the obfuscation while mainitaining executability
+## Removing the obfuscation
 The obfuscation is as follow:
-### Non-modified part of obfuscation
+### Non-modifiable part of obfuscation
 1. Whenever it enters a call statement the prologue is a pop instruction that pops (writes) the return address to the epilogue of the function.
 2. In the epilogue it adds the return address with an integer value and puts this at the current esp effectively make this calculated result the return address of the funtion.
 We will not touch this pattern while deofucating.
@@ -19,7 +17,7 @@ This will give us an executable in which we have the actual code or important co
 Run `Step1_Deobfuscate.py` that does this.
 [Note to run this script you must change the exception setting for PRIV instruction (0xC00..96) in debugger option to not suspend and pass it to the application]
 
-## Understanding the drama
+## Understanding the execution flow
 1. When in unknow teritory and not sure where to start our attention should always be caught by the code that is using the user supplied input (i.e. input passed as command line parameter).
 2. The fist time where a byte from user imput is used anywhere in a calculation is with `MUL` keyword.
 3. Something goes on in between, actually too many things goes on in between but next point of interest is the code site from  where it comes to tell us about whether the key is wrong or right.
