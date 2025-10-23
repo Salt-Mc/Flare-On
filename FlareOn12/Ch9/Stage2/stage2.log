@@ -1,0 +1,100 @@
+PS 10/22/2025 00:53:52 Stage1> cd ..\Stage2\ # We not enter the stage 2
+PS 10/22/2025 00:54:27 Stage2>
+PS 10/22/2025 00:54:31 Stage2> ## In stage 2 we will extract the constants used in DLL for matrices and input transformation.
+PS 10/22/2025 00:59:15 Stage2> ## We will also compute the snapshot of XOR values used for all the loaded modules by the current DLL and used during tranform
+PS 10/22/2025 01:02:39 Stage2> ## in the "check" function of the current DLL
+PS 10/22/2025 01:03:24 Stage2>
+PS 10/22/2025 01:03:26 Stage2> lsnames -FilesOnly # We'll start with following scripts, extract_mat...py for constant extraction and *_xor..py for XOR snap
+
+Name                                    Size Modified
+----                                    ---- --------
+🐍 compute_xor_snapshots.py             7597 2025-10-22 00:32:32
+🐍 extract_mat_and_transform_consts.py 18224 2025-10-22 01:15:35
+🐍 make_xor_offset_bin.py                603 2025-10-20 01:42:17
+
+PS 10/22/2025 01:21:42 Stage2> # To the first script extract_mat_and_transform....py we pass path to dll files, output path to write const and DLL order json
+PS 10/22/2025 01:24:16 Stage2> py .\..\run.py .\extract_mat_and_transform_consts.py ..\..\resources\rcdatas\ . ..\Stage1\ordering.json
+► Harness extract_mat_and_transform_consts.py  (runs: 1)
+  args: ..\..\resources\rcdatas\ . ..\Stage1\ordering.json
+DLLs: 100%|███████████████████████████████████████████████████████████████████████████████| 10000/10000 [08:45<00:00, 19.02dll/s, fail=0, missing=0, ok=1e+4]
+Processed 10000 DLLs (ok=10000, missing=0, fail=0)
+[ 1/1] OK       wall=  526.01 s cpu=   10.77 s
+
+Summary
+┌───────────────────────────────────────────────────┐
+│ Metric │ Values                                   │
+├───────────────────────────────────────────────────┤
+│ Wall   │ min 526.01 s  avg 526.01 s  max 526.01 s │
+│ CPU    │ min 10.77 s  avg 10.77 s  max 10.77 s    │
+└───────────────────────────────────────────────────┘
+PS 10/22/2025 01:33:22 Stage2> lsnames -FilesOnly # we now have the constants extracted and transformation analyzed and stored in following dirs
+
+Name                                    Size Modified
+----                                    ---- --------
+🐍 compute_xor_snapshots.py             7597 2025-10-22 00:32:32
+🐍 extract_mat_and_transform_consts.py 18224 2025-10-22 01:15:35
+🐍 make_xor_offset_bin.py                603 2025-10-20 01:42:17
+
+PS 10/22/2025 01:34:40 Stage2> lsnames # we now have the constants extracted and transformation analyzed and stored in following dirs
+
+Name                                   Size  Modified
+----                                   ----  --------
+📁 call_chain                                2025-10-22 01:33:22
+🐍 compute_xor_snapshots.py            7597  2025-10-22 00:32:32
+📁 confusions                                2025-10-22 01:33:22
+📁 diffusions                                2025-10-22 01:33:22
+🐍 extract_mat_and_transform_consts.py 18224 2025-10-22 01:15:35
+🐍 make_xor_offset_bin.py              603   2025-10-20 01:42:17
+📁 mat_transforms                            2025-10-22 01:33:21
+📁 permutations                              2025-10-22 01:33:22
+📁 transform_order                           2025-10-22 01:33:22
+
+PS 10/22/2025 01:34:54 Stage2> # The next step we build XOR snapshot
+PS 10/22/2025 01:36:38 Stage2> py .\..\run.py .\compute_xor_snapshots.py --module-order ..\Stage1\ordering.json --closure ..\Stage1\closures.json --out-dir .
+► Harness compute_xor_snapshots.py  (runs: 1)
+  args: --module-order ..\Stage1\ordering.json --closure ..\Stage1\closures.json --out-dir .
+[OK] Wrote NDJSON snapshots to: .\snapshots.ndjson
+[ 1/1] OK       wall=   41.63 s cpu=   40.12 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 41.63 s  avg 41.63 s  max 41.63 s │
+│ CPU    │ min 40.12 s  avg 40.12 s  max 40.12 s │
+└────────────────────────────────────────────────┘
+PS 10/22/2025 01:38:43 Stage2> lsnames -FilesOnly # we will see a new .ndjson file being written
+
+Name                                        Size Modified
+----                                        ---- --------
+🐍 compute_xor_snapshots.py                 7597 2025-10-22 00:32:32
+🐍 extract_mat_and_transform_consts.py     18224 2025-10-22 01:15:35
+🐍 make_xor_offset_bin.py                    603 2025-10-20 01:42:17
+📦 snapshots.ndjson                    740870758 2025-10-22 01:38:41
+
+PS 10/22/2025 01:40:25 Stage2> # This is an optional step where we just build indexes for snapshots.ndjson for faster processing it plays no role in soln.
+PS 10/22/2025 01:42:11 Stage2> py .\..\run.py .\make_xor_offset_bin.py
+► Harness make_xor_offset_bin.py  (runs: 1)
+Index built: offsets.bin
+[ 1/1] OK       wall=   1.159 s cpu=   1.141 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 1.159 s  avg 1.159 s  max 1.159 s │
+│ CPU    │ min 1.141 s  avg 1.141 s  max 1.141 s │
+└────────────────────────────────────────────────┘
+PS 10/22/2025 01:42:31 Stage2> lsnames -FilesOnly
+
+Name                                        Size Modified
+----                                        ---- --------
+🐍 compute_xor_snapshots.py                 7597 2025-10-22 00:32:32
+🐍 extract_mat_and_transform_consts.py     18224 2025-10-22 01:15:35
+🐍 make_xor_offset_bin.py                    603 2025-10-20 01:42:17
+📦 offsets.bin                             80000 2025-10-22 01:42:31
+📦 snapshots.ndjson                    740870758 2025-10-22 01:38:41
+
+PS 10/22/2025 01:42:56 Stage2> # Now stage 2 is complete - here we extracted constants and computed XOR snapshot
+PS 10/22/2025 01:44:07 Stage2>
+PS 10/22/2025 01:44:08 Stage2>

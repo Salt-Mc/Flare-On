@@ -1,0 +1,85 @@
+PS 10/22/2025 14:57:53 Stage2> cd ..\Stage3 # Switching to stage 3
+PS 10/22/2025 14:58:01 Stage3> # We will start the recovery now this will take the most amount of time in this challenge.
+PS 10/22/2025 14:58:35 Stage3> $env:CHARPOLY_CACHE_DIR = "$env:LOCALAPPDATA\\charpoly_cache" # cache used for matrix charpoly
+PS 10/22/2025 14:58:53 Stage3> $env:USE_GMP_MUL = "1" # to use GMP library for mat multiply
+PS 10/22/2025 14:59:00 Stage3> $env:FLINT_CHARPOLY = "1" # use FLINT for charpoly
+PS 10/22/2025 14:59:08 Stage3> lsnames -FilesOnly # We have three scripts here
+
+Name                       Size Modified
+----                       ---- --------
+🐍 invert.py              23707 2025-10-22 02:17:53
+🐍 makeLicFromJson.py      2214 2025-10-22 14:54:12
+🐍 recover_bytes_multi.py 38086 2025-10-22 14:50:21
+
+PS 10/22/2025 15:00:24 Stage3> # 1. recover_bytes_multi.py is the main orchestrator which uses helper invert.py for actual inversion.
+PS 10/22/2025 15:00:47 Stage3> # 2. makeLicFromJson.py will convert JSON file (recovered.json) generated in before step to actual license.bin that we need
+PS 10/22/2025 15:00:57 Stage3> py .\..\run.py recover_bytes_multi.py --workers 8 --precompute-inversions --flush-every 400 --checkpoint-every 400
+► Harness recover_bytes_multi.py  (runs: 1)
+  args: --workers 8 --precompute-inversions --flush-every 400 --checkpoint-every 400
+[precompute] Inverting 10000 matrices (may take time)...
+[precompute] Complete ok=10000 elapsed=170.02s
+[parallel] Workers=8 pending=10000 eager_preload=False progress=tqdm flush_every=400 precompute=True
+DLLs: 100%|██████████████████████████████████████████████████| 10000/10000 [20:50<00:00,  8.00dll/s, batch_fail=0, batch_ok=16, chkpt=1e+4, fail=0, ok=1e+4]
+[done] total=10000 ok=10000 fail=0
+[shutdown] fast pool shutdown...
+[shutdown] dispatched in 0.001s; OS will reap workers.
+PS 10/22/2025 15:33:47 Stage3> lsnames -FilesOnly # We should have recovered.ndjson which contains the original bytes
+
+Name                                Size Modified
+----                                ---- --------
+🧾 charpoly_inversion_cache.json 2413936 2025-10-22 15:05:17
+🐍 invert.py                       23707 2025-10-22 02:17:53
+🐍 makeLicFromJson.py               2214 2025-10-22 14:54:12
+🐍 recover_bytes_multi.py          38086 2025-10-22 14:50:21
+📦 recovered.ndjson               778890 2025-10-22 15:26:07
+🧾 recovery_diagnostics.json     1637783 2025-10-22 15:26:07
+
+PS 10/22/2025 15:34:58 Stage3> # Finally we create the expected "licence.bin" from "recovered.ndjson"
+PS 10/22/2025 15:36:56 Stage3> py .\..\run.py .\makeLicFromJson.py
+► Harness makeLicFromJson.py  (runs: 1)
+Wrote 10000 entries to license.bin.
+SHA256 Digest: 600abf28e03c73471a73bb909210dc2d2b4e98c7577d6b71299d2e54d693d14d
+[ 1/1] OK       wall=   0.151 s cpu=   0.078 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 0.151 s  avg 0.151 s  max 0.151 s │
+│ CPU    │ min 0.078 s  avg 0.078 s  max 0.078 s │
+└────────────────────────────────────────────────┘
+PS 10/22/2025 15:37:32 Stage3>
+PS 10/22/2025 18:26:27 Stage3> lsnames -FilesOnly # we have our "license.bin" file and it's sha256 hash, this hash is the key used to decrypt the encrypted flag bytes that are stored in binary 10000.exe
+
+Name                                Size Modified
+----                                ---- --------
+🧾 charpoly_inversion_cache.json 2413936 2025-10-22 15:05:17
+🐍 extract_and_nake_flag.py         4626 2025-10-22 18:00:18
+📦 flag.bin                           66 2025-10-22 18:00:22
+🐍 ida_make_flag.py                  423 2025-10-22 18:05:06
+🐍 invert.py                       23707 2025-10-22 02:17:53
+📦 license.bin                    340000 2025-10-22 15:37:32
+🐍 makeLicFromJson.py               2214 2025-10-22 14:54:12
+🐍 recover_bytes_multi.py          37960 2025-10-22 15:53:11
+📦 recovered.ndjson               778890 2025-10-22 15:26:07
+🧾 recovery_diagnostics.json     1637783 2025-10-22 15:26:07
+📦 stage3.log                       3650 2025-10-22 15:49:09
+📦 stage3.png                     834126 2025-10-22 15:38:12
+
+PS 10/22/2025 18:29:47 Stage3> py .\..\run.py .\extract_and_nake_flag.py ..\10000.exe --key-hex 600abf28e03c73471a73bb909210dc2d2b4e98c7577d6b71299d2e54d693d14d --rva # the uses RVA 0xd93a0 for IV and 0xd5c40 for encrypted flag use is default value in the script. We can pass it as param here in the cli if incase it's differnt.
+► Harness extract_and_nake_flag.py  (runs: 1)
+  args: ..\10000.exe --key-hex 600abf28e03c73471a73bb909210dc2d2b4e98c7577d6b71299d2e54d693d14d --rva
+IV @ 0xd81a0: 78615338bcb1f180d34ed1fa47a41d3d
+Ciphertext @ 0xd4a40 (80 bytes)
+Flag (UTF-8):
+Its_l1ke_10000_spooO0o0O0oOo0o0O0O0OoOoOOO00o0o0Ooons@flare-on.com
+[ 1/1] OK       wall=   0.170 s cpu=   0.094 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 0.170 s  avg 0.170 s  max 0.170 s │
+│ CPU    │ min 0.094 s  avg 0.094 s  max 0.094 s │
+└────────────────────────────────────────────────┘
+PS 10/22/2025 18:32:48 Stage3>

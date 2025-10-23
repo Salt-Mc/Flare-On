@@ -1,0 +1,108 @@
+PS 10/21/2025 23:49:27 Stage1> # In this stage we will extract the hardcoded final buffer and build clouser to derive the order of DLL loads
+PS 10/21/2025 23:50:42 Stage1> lsnames -FilesOnly # files in this stage
+
+Name                                  Size Modified
+----                                  ---- --------
+🐍 build_closures.py                  4838 2025-10-12 01:10:11
+🐍 derive_order_and_build_license.py  5985 2025-10-12 01:15:22
+🐍 extract_h.py                       1885 2025-10-12 00:41:40
+🐍 harness.py                        14188 2025-10-21 23:40:43
+🐍 solve_positions_peeling.py         3294 2025-10-12 01:37:04
+🐍 validate_closures_vs_H.py          2173 2025-10-12 01:01:30
+
+PS 10/21/2025 23:51:23 Stage1> # 1. Extract H (hardcoded constants that are used in final memcmp)
+PS 10/21/2025 23:52:33 Stage1> py .\run.py .\extract_h.py ..\10000.exe --rva 0xCC000 # The hardcoded buffer is at RVA 0xCC000 in the executable 10000.exe
+► Harness extract_h.py  (runs: 1)
+  args: ..\10000.exe --rva 0xCC000
+[+] Extracted 10000 uint32 entries to hardcoded_expected.json
+[+] Distinct values: 9998  Range: [498, 49752356]
+[*] H is NOT a simple permutation; dependencies overlap (needs system solve).
+[ 1/1] OK       wall=   0.169 s cpu=   0.109 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 0.169 s  avg 0.169 s  max 0.169 s │
+│ CPU    │ min 0.109 s  avg 0.109 s  max 0.109 s │
+└────────────────────────────────────────────────┘
+PS 10/21/2025 23:54:58 Stage1> lsnames -FilesOnly # we should see new file hardcoded_expected.json created
+
+Name                                  Size Modified
+----                                  ---- --------
+🐍 build_closures.py                  4838 2025-10-12 01:10:11
+🐍 derive_order_and_build_license.py  5985 2025-10-12 01:15:22
+🐍 extract_h.py                       1885 2025-10-12 00:41:40
+🧾 hardcoded_expected.json           97479 2025-10-21 23:54:58
+🐍 run.py                            14188 2025-10-21 23:40:43
+🐍 solve_positions_peeling.py         3294 2025-10-12 01:37:04
+🐍 validate_closures_vs_H.py          2173 2025-10-12 01:01:30
+
+PS 10/21/2025 23:55:55 Stage1> (Get-Content .\hardcoded_expected.json -Raw).Substring(0,80)
+[34950827, 1111565, 23824527, 35564631, 6957343, 2500832, 45269251, 33506221, 48
+PS 10/21/2025 23:58:54 Stage1> # 2. Now let's build the closure i.e. dependencies graph of module loads
+PS 10/22/2025 00:01:03 Stage1> py .\run.py .\build_closures.py ..\..\resources\rcdatas\ # Here we pass the path containing 0...9999.dll files
+► Harness build_closures.py  (runs: 1)
+  args: ..\..\resources\rcdatas\
+[*] Parsing direct numeric dependencies...
+Loading module dependencies: 100%|█████████████████████████████████████████████████████████████████████████████████████| 10000/10000 [02:44<00:00, 60.85module/s]
+[*] Building transitive closures...
+Building closures: 100%|███████████████████████████████████████████████████████████████████████████████████████████████| 10000/10000 [03:24<00:00, 48.91module/s]
+[+] Closure size stats: min=1 max=9955 avg=4931.070
+[+] Most common sizes: [(1, 22), (2, 10), (3, 8), (5, 7), (8, 7)]
+[+] Wrote closures to closures.json
+[*] Non-trivial: 9978 modules have dependencies >1.
+[ 1/1] OK       wall=  409.14 s cpu=  404.50 s
+
+Summary
+┌───────────────────────────────────────────────────┐
+│ Metric │ Values                                   │
+├───────────────────────────────────────────────────┤
+│ Wall   │ min 409.14 s  avg 409.14 s  max 409.14 s │
+│ CPU    │ min 404.50 s  avg 404.50 s  max 404.50 s │
+└───────────────────────────────────────────────────┘
+PS 10/22/2025 00:10:33 Stage1> lsnames -FilesOnly # we have now build the closure.json which will be used to derive the order of DLL load
+
+Name                                      Size Modified
+----                                      ---- --------
+🐍 build_closures.py                      4838 2025-10-12 01:10:11
+🧾 closures.json                     290457204 2025-10-22 00:10:29
+🐍 derive_order_and_build_license.py      5985 2025-10-12 01:15:22
+🐍 extract_h.py                           1885 2025-10-12 00:41:40
+🧾 hardcoded_expected.json               97479 2025-10-21 23:54:58
+🐍 run.py                                14188 2025-10-21 23:40:43
+🐍 solve_positions_peeling.py             3294 2025-10-12 01:37:04
+🐍 validate_closures_vs_H.py              2173 2025-10-12 01:01:30
+
+PS 10/22/2025 00:11:38 Stage1> py .\run.py .\solve_positions_peeling.py --H .\hardcoded_expected.json --closures .\closures.json
+► Harness solve_positions_peeling.py  (runs: 1)
+  args: --H .\hardcoded_expected.json --closures .\closures.json
+[+] Solved 10000 module positions by peeling.
+[+] Full solution found.
+[+] Wrote ordering.json (license module id sequence).
+[ 1/1] OK       wall=   30.53 s cpu=   30.23 s
+
+Summary
+┌────────────────────────────────────────────────┐
+│ Metric │ Values                                │
+├────────────────────────────────────────────────┤
+│ Wall   │ min 30.53 s  avg 30.53 s  max 30.53 s │
+│ CPU    │ min 30.23 s  avg 30.23 s  max 30.23 s │
+└────────────────────────────────────────────────┘
+PS 10/22/2025 00:17:37 Stage1> lsnames -FilesOnly # we now have the DLL load order
+
+Name                                      Size Modified
+----                                      ---- --------
+🐍 build_closures.py                      4838 2025-10-12 01:10:11
+🧾 closures.json                     290457204 2025-10-22 00:10:29
+🐍 derive_order_and_build_license.py      5985 2025-10-12 01:15:22
+🐍 extract_h.py                           1885 2025-10-12 00:41:40
+🧾 hardcoded_expected.json               97479 2025-10-21 23:54:58
+🧾 ordering.json                         58890 2025-10-22 00:17:36
+🐍 run.py                                14188 2025-10-21 23:40:43
+🐍 solve_positions_peeling.py             3294 2025-10-12 01:37:04
+🐍 validate_closures_vs_H.py              2173 2025-10-12 01:01:30
+
+PS 10/22/2025 00:18:09 Stage1> (Get-Content .\ordering.json -Raw).Substring(0,100) # Let's peek into the ordering.json
+[7476, 5402, 4885, 5176, 6815, 7764, 9981, 655, 6606, 7019, 4404, 5582, 964, 5253, 5359, 6854, 4978,
+PS 10/22/2025 00:19:13 Stage1> # This ends our stage 1
