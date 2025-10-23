@@ -114,13 +114,13 @@ C_m = {m} ∪ ⋃ (dependencies of m, recursively)
 - **Closure:**  
   $$C(m) = \{ m \} \cup \bigcup_{u \in D(m)} C(u)$$
 - **Contributors matrix:**  
-  $$
-  A_{d,m} =
-    \begin{cases}
-      1, & d \in C(m) \\
-      0, & \text{otherwise}
-    \end{cases}
-  $$
+  
+```math
+A_{d,m} = \begin{cases}
+  1, & d \in C(m) \\
+  0, & \text{otherwise}
+\end{cases}
+```
 
 _*Explanation*_: The closure of module m includes itself plus all modules that any of its direct dependencies depend on, computed recursively. Think of it like "everything m needs to function, directly or indirectly."
 
@@ -196,27 +196,21 @@ If |{m : d ∈ C_m}| = 1, then P_m = H[d]
 ### Core Equations
 
 1. **System of equations (given data vs positions):**  
-   $$
-   H[d] = \sum_{m \in \text{contributors}[d]} p[m]
-   $$
+   $$H[d] = \sum_{m \in \text{contributors}[d]} p[m]$$
+
    Where:  
    - $H[d]$: provided sum for row $d$  
    - $p[m]$: position (index) of module $m$
 
 2. **Peeling rule (single contributor row):**  
    If the list `contributors[d]` has size 1 and its sole module is $m$:  
-   $$
-   p[m] = H[d]
-   $$  
+   $$p[m] = H[d]$$
+
    Propagate to every other row $d'$ containing $m$:  
-   $$
-   H[d'] \leftarrow H[d'] - p[m], \quad \text{remove } m \text{ from } \text{contributors}[d']
-   $$
+   $$H[d'] \leftarrow H[d'] - p[m], \quad \text{remove } m \text{ from } \text{contributors}[d']$$
 
 3. **Final order array:**  
-   $$
-   \text{order}[\,p[m]\,] = m
-   $$
+   $$\text{order}[\,p[m]\,] = m$$
 
 _*Explanation*_: If position d appears in exactly one module's closure, then that module's position is simply H[d]. After solving, subtract this contribution from all other equations.
 
@@ -396,31 +390,23 @@ Name                                   Size  Modified
 
 - **Buffer:** $B[m]$ = 32‑bit unsigned integer state for module $m$.
 - **Active set at iteration $i$:**  
-  $$
-  S_i = C(\text{order}[i]) \cup \{ \text{order}[i] \}
-  $$
+  $$S_i = C(\text{order}[i]) \cup \{ \text{order}[i] \}$$
 
 ##### Core Equations
 
 1. **Buffer value before applying iteration $i$ update:**  
-   $$
-   B[m]^{(i)} = \sum_{j=0}^{i-1} \mathbf{1}[\, m \in S_j \,]\cdot j \pmod{2^{32}}
-   $$
+   $$B[m]^{(i)} = \sum_{j=0}^{i-1} \mathbf{1}[\, m \in S_j \,]\cdot j \pmod{2^{32}}$$
+2. **Update rule (transition $i \to i+1$):**
 
-2. **Update rule (transition $i \to i+1$):**  
-   $$
-   B[m]^{(i+1)} =
-   \begin{cases}
-     (B[m]^{(i)} + i) \bmod 2^{32}, & m \in S_i \\
-     B[m]^{(i)}, & m \notin S_i
-   \end{cases}
-   $$
+$$
+B[m]^{(i+1)} = \begin{cases}
+  (B[m]^{(i)} + i) \bmod 2^{32}, & m \in S_i \\
+  B[m]^{(i)}, & m \notin S_i
+\end{cases}
+$$
 
 3. **Final buffer value (after $N$ iterations):**  
-   $$
-   B[m]^{(\text{final})} =
-   \sum_{j=0}^{N-1} \mathbf{1}[\, m \in S_j \,]\cdot j \pmod{2^{32}}
-   $$
+   $$B[m]^{(\text{final})} = \sum_{j=0}^{N-1} \mathbf{1}[\, m \in S_j \,]\cdot j \pmod{2^{32}}$$
 
 _*Explanation*_: At iteration i, for every position k in the closure of module M_i being processed, add the iteration number $i$ to counter $B(m)$. This creates time-dependent "XOR keys" used in cryptographic transforms.
 
@@ -514,7 +500,7 @@ The script implements three byte-level reversible transforms (Exponentiation, S-
 - A 32‑byte block is treated as a 256‑bit little-endian integer:  
   $$\text{bytes} \;\; b[0..31] \quad\longleftrightarrow\quad X = \sum_{i=0}^{31} b_i \, 256^i.$$
 - Let $c$ be the 8-bit check byte (named `check_byte`).
-- Let $\operatorname{LSB}(x) = x \bmod 2$.
+- Let $\mathop{\mathrm{LSB}}(x) = x \bmod 2$.
 - All modular powers use Python’s built-in fast exponentiation: $\text{pow}(a, e, M) = a^e \bmod M$.
 
 **Key Mathematical Operations**:
@@ -528,8 +514,11 @@ We are given:
 - Flattened matrix entries $T_{\text{flat}}$ (16 integers).
 - Constants $R_{\text{const}}$ (16 integers).
 
-Build:
-$$T \in M_{4}(\mathbb{F}_p), \quad T_{i,j} = T_{\text{flat}}[4i + j] \bmod p.$$
+Build:  
+
+$$
+T \in M_{4}(\mathbb{F}_p), \quad T_{i,j} = T_{\text{flat}}[4i + j] \bmod p.
+$$
 
 **Characteristic Polynomial Factorization**:
 
@@ -537,13 +526,17 @@ $$T \in M_{4}(\mathbb{F}_p), \quad T_{i,j} = T_{\text{flat}}[4i + j] \bmod p.$$
 charpoly(T) = ∏ᵢ fᵢ(x)^mᵢ over GF(p)
 ```
 
-Compute
+Compute  
 $$\chi_T(x) = \det(xI - T) \in \mathbb{F}_p[x].$$
-Factor over $\mathbb{F}_p$:
-$$\chi_T(x) = \prod_{i} f_i(x)^{m_i}, \quad \deg f_i = d_i.$$
 
-Each irreducible factor $f_i$ of degree $d_i$ corresponds to eigenvalues in the extension field $\mathbb{F}_{p^{d_i}}$, whose multiplicative group has order $p^{d_i} - 1$. If $T$ is diagonalizable in a product of these extensions (or at least its semisimple part has this behavior), its order divides:
-$$L = \operatorname{lcm}_{i} (p^{d_i} - 1).$$
+Factor over $\mathbb{F}_p$  
+$$\chi_T(x) = \prod_i f_i(x)^{m_i}, \quad \deg f_i = d_i.$$
+
+Each irreducible factor $f_i$ of degree $d_i$ corresponds to eigenvalues in the extension field $\mathbb{F}_{p^{d_i}}$, whose multiplicative group has order $p^{d_i} - 1$. If $T$ is diagonalizable in a product of these extensions (or at least its semisimple part has this behavior), its order divides:  
+
+$$
+L = \mathrm{lcm}_i (p^{d_i} - 1).
+$$
 
 **Matrix Root Recovery**:
 
@@ -557,42 +550,48 @@ To find matrix A such that A^E = T, we compute d (the modular inverse of E) and 
 Details:  
 We assume $T = A^{e}$ for some unknown $A$ and $\gcd(e, L) = 1$. Then there exists $d$ such that:
 $$d \equiv e^{-1} \pmod{L}.$$
-Choose:
+Choose:  
 $$A = T^{d} \quad (\text{matrix exponentiation mod } p).$$
-Verification:
+Verification:  
 $$A^{e} = T^{de} = T^{1 \bmod L} = T.$$
 
-Matrix powering:
+Matrix powering:  
 $$T^{d} = \underbrace{T \cdot T \cdot \dots \cdot T}_{d\text{ times}} \pmod p,$$
 implemented via binary exponentiation on 4×4 matrices.
 
 **Recovering W Words**:
 
-Flatten $A$ (row-major):
+Flatten $A$ (row-major):  
 $$A_{\text{flat}}[k] = A_{\lfloor k/4 \rfloor,\; k \bmod 4}, \quad 0 \le k < 1$$
 
-For each column index $c \in \{0,1,2,3\}$ define index set:
+For each column index $c \in \{0,1,2,3\}$ define index set:  
 $$I_c = \{ k \mid k \bmod 4 = c,\ 0 \le k < 16 \}.$$
 
-Given constants $R_{\text{const}}[k]$, define per-position candidates:
-$$\mathcal{C}_{k} = \{ A_{\text{flat}}[k] \oplus R_{\text{const}}[k],\ (A_{\text{flat}}[k] + p) \oplus R_{\text{const}}[k] \}.$$
+Given constants $R_{\text{const}}[k]$, define per-position candidates:  
+
+$$
+\mathcal{C}_k = \{ A_{\text{flat}}[k] \oplus R_{\text{const}}[k],\ (A_{\text{flat}}[k] + p) \oplus R_{\text{const}}[k] \}.
+$$
 
 (Lifting by $+p$ accounts for ambiguity between representatives modulo $p$ versus integers before XOR.)
 
-Intersect within the column:
+Intersect within the column:  
 $$W_c = \bigcap_{k \in I_c} \mathcal{C}_{k}.$$
 
-The code expects $|W_c| = 1$ (unique recovery). Then:
+The code expects $|W_c| = 1$ (unique recovery). Then:  
 $$W = (W_0, W_1, W_2, W_3) \quad \text{(each a 64-bit word)}.$$
 
 **Final Byte Reconstruction**:
 
-Each $W_i$ is split into two little-endian 32-bit halves:
+Each $W_i$ is split into two little-endian 32-bit halves:  
 $$W_i = \text{lo}_i + 2^{32} \cdot \text{hi}_i.$$
 
-Collect eight dwords:
+Collect eight dwords:  
+
 $$(\text{lo}_0, \text{hi}_0, \text{lo}_1, \text{hi}_1, \text{lo}_2, \text{hi}_2, \text{lo}_3, \text{hi}_3),$$
-serialize to 32 bytes little-endian:
+
+Serialize to 32 bytes little-endian:  
+
 $$\text{bytes} = \text{LE}_{4}(\text{lo}_0) \| \text{LE}_{4}(\text{hi}_0) \| \dots \| \text{LE}_{4}(\text{hi}_3).$$
 
 This reconstructs the target original 32-byte secret.
@@ -608,56 +607,58 @@ Inverse:  X = Y^(E⁻¹ mod 2²⁵⁴) mod 2²⁵⁶  (with bit restoration)
 
 #### Forward
 
-Given input bytes $x$, parse constants into a 248-bit exponent fragment (31 bytes) extended as little-endian to an integer $E$:
-$$E = \text{LE}_{31}(\text{exp\_bytes}).$$
+Given input bytes $x$, parse constants into a 248-bit exponent fragment (31 bytes) extended as little-endian to an integer $E$:  
+
+$$E = \text{LE}_{31}(\mathrm{exp\_bytes}).$$
+
 (Internally stored in 31 bytes; treated as integer modulo $2^{248}$ but used directly.)
 
-Convert the 32-byte block to integer:
+Convert the 32-byte block to integer:  
 $$X = \text{LE}_{32}(x).$$
 
-Apply pre-XOR with the check byte:
+Apply pre-XOR with the check byte:  
 $$X_0 = X \oplus c.$$
 
-Force oddness (inject into group of odd residues mod $2^{256}$):
-$$b = \operatorname{LSB}(X_0), \qquad X_1 = X_0 \lor 1.$$
+Force oddness (inject into group of odd residues mod $2^{256}$):  
+$$b = \mathop{\mathrm{LSB}}(X_0), \qquad X_1 = X_0 \lor 1.$$
 
-Exponentiate modulo $2^{256}$:
+Exponentiate modulo $2^{256}$:  
 $$Y_0 = X_1^{E} \bmod 2^{256}.$$
 
-Inject an LSB “bit whitening” using the original parity:
+Inject an LSB “bit whitening” using the original parity:  
 $$Y = Y_0 \oplus (b \oplus 1).$$
 
-Encode back to 32 bytes (little-endian):
-$$\text{forward\_exponent}(x) = \text{LE}_{32}^{-1}(Y).$$
+Encode back to 32 bytes (little-endian):  
+$$\mathrm{forward\_exponent}(x) = \text{LE}_{32}^{-1}(Y).$$
 
-So overall:
-$$\boxed{Y = ( ( (X \oplus c) \lor 1 )^{E} \bmod 2^{256} ) \oplus ( \operatorname{LSB}(X \oplus c) \oplus 1 )}.$$
+So overall:  
+$$\boxed{Y = ( ( (X \oplus c) \lor 1 )^{E} \bmod 2^{256} ) \oplus ( \mathop{\mathrm{LSB}}(X \oplus c) \oplus 1 )}.$$
 
 #### Inverse
 
-Given $y$:
+Given $y$:  
 $$Y = \text{LE}_{32}(y).$$
 
-Force oddness again:
+Force oddness again:  
 $$Z = Y \lor 1.$$
 
-Compute an “inverse exponent”:
+Compute an “inverse exponent”:  
 $$D \equiv E^{-1} \pmod{2^{254}}.$$
 (Implementation note: The multiplicative group of odd residues modulo $2^{256}$ has order $2^{255}$; using $2^{254}$ here effectively restricts to a subgroup or compensates for the LSB toggling. The script assumes $E$ invertible modulo $2^{254}$.)
 
-Root extraction:
+Root extraction:  
 $$S_0 = Z^{D} \bmod 2^{256}.$$
 
-Restore original parity bit:
-$$b = \operatorname{LSB}(Y), \qquad S_1 = (S_0 \land \sim 1) \lor b.$$
+Restore original parity bit:  
+$$b = \mathop{\mathrm{LSB}}(Y), \qquad S_1 = (S_0 \land \sim 1) \lor b.$$
 
-Undo initial XOR:
+Undo initial XOR:  
 $$X = S_1 \oplus c.$$
 
 Return $\text{LE}_{32}^{-1}(X)$.
 
-So inverse equation:
-$$\boxed{X = \big( ( (Y \lor 1)^{D} \bmod 2^{256} \land \sim 1 ) \lor \operatorname{LSB}(Y) \big) \oplus c }.$$
+So inverse equation:  
+$$\boxed{X = \big( ( (Y \lor 1)^{D} \bmod 2^{256} \land \sim 1 ) \lor \mathop{\mathrm{LSB}}(Y) \big) \oplus c }.$$
 
 ### 3. S-box Inversion
 
@@ -673,12 +674,12 @@ $$T[i] = \text{byte at position } i \text{ in constructed 256-byte array}, \quad
 
 Forward:
 
-1. Pre-XOR first 4 bytes (little-endian dword) with $c$:
+1. Pre-XOR first 4 bytes (little-endian dword) with $c$:  
    $$x'[0..3] = (x[0..3] \oplus c_{\text{u32}}).$$
-2. Apply byte-wise substitution:
+2. Apply byte-wise substitution:  
    $$y[i] = T[x'[i]], \quad 0 \le i < 32.$$
 
-Inverse rebuilds an inverse map $T^{-1}$:
+Inverse rebuilds an inverse map $T^{-1}$:  
 $$x'[i] = T^{-1}[y[i]], \quad 0 \le i < 32,$$
 then XORs first dword with $c$ again.
 
@@ -695,17 +696,17 @@ Inverse:  X'[i] = Y[π⁻¹[i]]  where π⁻¹ is inverse permutation
 
 Permutation reorders bytes according to mapping π. Inversion uses the inverse permutation π⁻¹.
 
-From four 64-bit constants (total 32 bytes) create an index array:
-$$\pi[i] = \text{byte } i \text{ of idx\_bytes}, \quad 0 \le i < 32.$$
+From four 64-bit constants (total 32 bytes) create an index array:  
+$$\pi[i] = \text{byte } i \text{ of } \mathrm{idx\_bytes}, \quad 0 \le i < 32.$$
 
 Forward:
 
-1. XOR first dword with $c$:
+1. XOR first dword with $c$:  
    $$x'[0..3] = x[0..3] \oplus c_{\text{u32}}.$$
-2. Permute:
+2. Permute:  
    $$y[i] = x'[\pi[i]], \quad 0 \le i < 32.$$
 
-Inverse builds inverse permutation $\pi^{-1}$:
+Inverse builds inverse permutation $\pi^{-1}$:  
 $$x'[j] = y[\pi^{-1}(j)],$$
 then XORs first dword with $c$ to recover original.
 
@@ -858,3 +859,7 @@ Its_l1ke_10000_spooO0o0O0oOo0o0O0O0OoOoOOO00o0o0Ooons@flare-on.com
 ```
 
 ---
+
+## Credits
+
+[Sudhacker](https://sudhackar.in/) provided some very important hints that helped me solve this. Specifically, in understanding ordering and xor used in tansformation. [Sud's writeup](https://sudhackar.notion.site/Flare-On-12-Writeups-28fb50c22b8580c28266e866f32e8d72#28fb50c22b858063b7f8ebb1adcae684)
