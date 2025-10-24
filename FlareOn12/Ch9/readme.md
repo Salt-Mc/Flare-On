@@ -29,14 +29,21 @@ Total script execution time around **35 minutes**.
 8. calc Sha - 0.1 s
 9. Flag - 0.1 s
 
-Serial execution 1 + 2 + 3 = 590 s  
-parallel execution 4 = 526 s
-
-Total time until 4 = 590 s
-
-Serial execution 5 + 6 + 7 + 8 + 9 = 1462 s
-
-$\text{Final total time } \Rightarrow 1462 + 590 = 34.2\text{ Minutes}.$
+| Serial Execution | Parallel Execution | Time Wasted |
+| ---------------- | ------------------ |------------------ |
+| 1 - 169 s | 4 - 526 s ||
+| 2 - 409 s | ||
+| 3 - 30 s | ||
+||||
+|||Time wasted until 4 = 608 s|
+| 5 - 42 s || Time wasted until 5 = 650 s |
+| 6 - 170 s || Time wasted until 6 = 820 s |
+| 7 - 1250 s || Time wasted until 7 = 2070 s |
+| 8 - 0.1 s || Time wasted until 8 = 2070.1 s |
+| 9 - 0.1 s || Time wasted until 9 = 2070.2 s |
+||||
+| Final total time = 34.5 Minutes |||
+||||
 
 ---
 
