@@ -1,0 +1,3 @@
+aplib
+capstone
+pycryptodome
